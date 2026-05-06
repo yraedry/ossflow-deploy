@@ -1,0 +1,7 @@
+.env
+backups/
+*.db
+*.db-shm
+*.db-wal
+cloudflared/credentials.json
+cloudflared/config.yml

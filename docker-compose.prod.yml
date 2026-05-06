@@ -1,0 +1,39 @@
+services:
+  backend:
+    image: ghcr.io/${GITHUB_OWNER}/ossflow-backend:${BACKEND_VERSION:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    volumes:
+      - /var/lib/ossflow/data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - ossflow-net
+
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER}/ossflow-frontend:${FRONTEND_VERSION:-latest}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ossflow-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: unless-stopped
+    networks:
+      - ossflow-net
+
+networks:
+  ossflow-net:
+    driver: bridge

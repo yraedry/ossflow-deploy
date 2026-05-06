@@ -1,0 +1,22 @@
+# Cloudflare Tunnel — configuración de ejemplo
+# Documentación: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
+#
+# En producción, el token se pasa como variable de entorno CLOUDFLARE_TUNNEL_TOKEN
+# en docker-compose.prod.yml. No es necesario este archivo de configuración.
+#
+# Para configurar el tunnel en el panel de Cloudflare Zero Trust:
+# 1. Ir a: https://one.dash.cloudflare.com → Networks → Tunnels
+# 2. Crear un nuevo tunnel → "cloudflared"
+# 3. Copiar el token y pegarlo en .env como CLOUDFLARE_TUNNEL_TOKEN
+# 4. En "Public Hostnames" configurar:
+#    - Subdomain: ossflow (o el que prefieras)
+#    - Domain: tu dominio en Cloudflare
+#    - Service: http://frontend:80
+
+tunnel: <TUNNEL-ID>
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  - hostname: ossflow.tudominio.com
+    service: http://frontend:80
+  - service: http_status:404

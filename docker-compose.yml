@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ../OssFlow
+      dockerfile: Dockerfile
+    image: ossflow-backend:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../OssFlow-frontend
+      dockerfile: Dockerfile
+    image: ossflow-frontend:dev
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:
