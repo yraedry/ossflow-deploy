@@ -1,22 +1,42 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ossflow
+      POSTGRES_USER: ossflow
+      POSTGRES_PASSWORD: ossflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ossflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ../OssFlow
       dockerfile: Dockerfile
     image: ossflow-backend:dev
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ossflow
+      POSTGRES_USER: ossflow
+      POSTGRES_PASSWORD: ossflow
     ports:
       - "8080:8080"
-    volumes:
-      - sqlite-data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     restart: unless-stopped
 
   frontend:
@@ -32,4 +52,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  sqlite-data:
+  postgres-data:
