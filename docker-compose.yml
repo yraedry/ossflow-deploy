@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ossflow
-      POSTGRES_USER: ossflow
-      POSTGRES_PASSWORD: ossflow
+      POSTGRES_DB: ${POSTGRES_DB:-ossflow}
+      POSTGRES_USER: ${POSTGRES_USER:-ossflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -23,11 +23,14 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
       POSTGRES_HOST: postgres
-      POSTGRES_DB: ossflow
-      POSTGRES_USER: ossflow
-      POSTGRES_PASSWORD: ossflow
-    ports:
-      - "8080:8080"
+      POSTGRES_DB: ${POSTGRES_DB:-ossflow}
+      POSTGRES_USER: ${POSTGRES_USER:-ossflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Puerto 8080 solo accesible desde la red interna Docker (nginx → backend).
+    # No se expone al host para evitar bypass del rate-limiting de nginx
+    # y del filtro X-Forwarded-For que resuelve VUL-006.
+    expose:
+      - "8080"
     depends_on:
       postgres:
         condition: service_healthy
